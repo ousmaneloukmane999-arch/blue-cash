@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blue Cash - Gagne 500 FCFA par ami</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 font-sans">
+<div class="max-w-md mx-auto mt-6 p-6 bg-white rounded-2xl shadow-xl">
+  <h1 class="text-3xl font-black text-blue-600 text-center">Blue Cash 💙</h1>
+  <p class="text-center text-gray-500 mt-2 text-sm">Partage ton lien. 500 FCFA par ami qui s'inscrit.</p>
+
+  <div class="bg-gradient-to-r from-blue-600 to-blue-400 p-5 rounded-xl mt-6 text-white text-center">
+    <p class="text-sm opacity-80">Ton solde disponible</p>
+    <p class="text-3xl font-bold mt-1">0 FCFA</p>
+    <p class="text-xs mt-1 opacity-70">Retrait minimum 1000 FCFA</p>
+  </div>
+
+  <div class="mt-6">
+    <label class="text-sm font-bold text-gray-700">Ton lien de parrainage</label>
+    <div class="flex mt-2">
+      <input id="link" value="https://bluecash.onrender.com/r/tonnom" class="flex-1 border border-gray-300 p-3 rounded-l-xl text-sm bg-gray-50" readonly>
+      <button onclick="copyLink()" class="bg-black text-white px-5 rounded-r-xl text-sm font-bold">Copier</button>
+    </div>
+    <p class="text-xs text-gray-400 mt-2">1 ami = 500 FCFA. 2 amis = 1000 FCFA retirable.</p>
+  </div>
+
+  <div class="mt-8 border-t pt-6">
+    <h2 class="font-black text-lg">Demander un retrait</h2>
+    <p class="text-xs text-green-600 mb-4 bg-green-50 p-2 rounded">✅ Sécurisé : nous ne demandons JAMAIS votre mot de passe Mobile Money.</p>
+    
+    <form id="retraitForm" class="space-y-3">
+      <select id="methode" class="w-full border border-gray-300 p-3 rounded-xl bg-white">
+        <option value="Airtel Money">Airtel Money Niger</option>
+        <option value="Wave Niger">Wave Niger</option>
+        <option value="MyNita">MyNita</option>
+        <option value="Moov Money">Moov Money</option>
+      </select>
+      <input id="numero" type="tel" placeholder="Ton numéro: 90 XX XX XX" required class="w-full border border-gray-300 p-3 rounded-xl">
+      <input id="montant" type="number" min="1000" value="1000" placeholder="Montant" required class="w-full border border-gray-300 p-3 rounded-xl">
+      <button type="submit" id="btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3.5 rounded-xl font-black text-lg">RETIRER MAINTENANT</button>
+    </form>
+    <p id="msg" class="text-center text-sm mt-4 font-bold"></p>
+  </div>
+
+  <p class="text-[10px] text-center text-gray-400 mt-8">Blue Cash est une plateforme de dons entre amis. Opéré depuis Niamey.</p>
+</div>
+
+<script>
+function copyLink(){ 
+  navigator.clipboard.writeText(document.getElementById('link').value); 
+  alert('Lien copié ! Envoie-le à tes amis'); 
+}
+
+document.getElementById('retraitForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  const msg = document.getElementById('msg');
+  btn.innerText = "Envoi en cours...";
+  btn.disabled = true;
+
+  const data = {
+    methode: document.getElementById('methode').value,
+    numero: document.getElementById('numero').value,
+    montant: document.getElementById('montant').value
+  };
+
+  try {
+    const res = await fetch('/api/retrait', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    const j = await res.json();
+    if(j.ok){
+      msg.className = "text-center text-sm mt-4 font-bold text-green-600";
+      msg.innerText = "✅ Demande envoyée ! Tu recevras " + data.montant + " FCFA sur " + data.numero + " sous 30 min.";
+      e.target.reset();
+    } else {
+      msg.className = "text-center text-sm mt-4 font-bold text-red-600";
+      msg.innerText = "❌ " + (j.message || "Erreur");
+    }
+  } catch(err){
+    msg.className = "text-center text-sm mt-4 font-bold text-red-600";
+    msg.innerText = "❌ Erreur réseau. Réessaie.";
+  }
+  btn.innerText = "RETIRER MAINTENANT";
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>
